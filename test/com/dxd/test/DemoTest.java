@@ -13,6 +13,7 @@ import com.dxd.utils.Pager;
 
 public class DemoTest {
 	public static void main(String[] args) {
+                //测试
 		ApplicationContext context = new ClassPathXmlApplicationContext("applicationContext.xml");
 		PersonService ps = (PersonService)context.getBean("personService");
 		Map<String,Object> map = new HashMap<>();
