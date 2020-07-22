@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+ "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+ <mapper namespace="com.dxd.dao.CheckMapper">
+	<!-- 查询所有考勤记录,条件查询,分页 --> 
+	<select id="getCheck" parameterType="map" resultMap="checkMap">
+		<bind name="pageValue" value="(currentPage-1)*rowPerPage"/>
+		SELECT pc.checkId,p.pId,p.pName,cp.cId,cp.cName,pc.checkDate FROM `person_checkperson` AS pc
+		LEFT JOIN person AS p ON p.pId = pc.checkPerson
+		LEFT JOIN checkperson AS cp ON cp.cId = pc.checkType
+		WHERE 1=1
+		<if test="pName != '' and pName != null">
+			and p.pName like concat('%',#{pName},'%')
+		</if>
+		<if test="cId != '' and cId != null">
+			and cp.cId = #{cId}
+		</if>
+		ORDER BY pc.checkDate DESC
+		limit #{pageValue},#{rowPerPage}
+	</select>
+	<!-- 动态查询考勤记录数 -->
+	<select id="getCheckCount" parameterType="map" resultType="int">
+		SELECT COUNT(*) FROM `person_checkperson` AS pc
+		LEFT JOIN person AS p ON p.pId = pc.checkPerson
+		LEFT JOIN checkperson AS cp ON cp.cId = pc.checkType
+		WHERE 1=1
+		<if test="pName != '' and pName != null">
+			and p.pName like concat('%',#{pName},'%')
+		</if>
+		<if test="cId != '' and cId != null">
+			and cp.cId = #{cId}
+		</if>
+	</select>
+	<!-- 获得所有请假类型 -->
+	<select id="getCheckType" resultType="Check">
+		select * from checkperson
+	</select>
+	<!-- 删除指定记录 -->
+	<delete id="delCheck" parameterType="int">
+		delete from `person_checkperson` where checkId = #{checkId}
+	</delete>
+	<!-- 添加记录 -->
+	<insert id="addCheck" parameterType="map">
+		INSERT INTO `person_checkperson`(`checkPerson`,`checkType`,`checkDate`)
+		VALUE(#{pId},#{cId},#{checkDate})
+	</insert>
+	<resultMap type="CheckMessage" id="checkMap">
+		<id column="checkId" property="checkId"/>
+		<result column="checkDate" property="checkDate"/>
+		<association property="person" javaType="Person">
+			<id column="pId" property="pId"/>
+			<result column="pName" property="pName"/>
+		</association>
+		<association property="check" javaType="Check">
+			<id column="cId" property="cId"/>
+			<result column="cName" property="cName"/>
+		</association>
+	</resultMap>
+ </mapper>

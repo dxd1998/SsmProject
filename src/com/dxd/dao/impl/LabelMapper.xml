@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+ "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+ <mapper namespace="com.dxd.dao.LabelMapper">
+ <!-- 得到该用户所有快捷标签 -->
+	 <select id="getLabelLevel2" parameterType="int" resultType="Power2">
+	 	SELECT pr.*
+		FROM person AS p
+		LEFT JOIN label AS l ON p.pId = l.pId
+		LEFT JOIN `power` AS pr ON pr.powerId = l.powerId
+		WHERE l.pId = #{pId}
+	 </select>
+	 <!-- 删除员工所有快捷标签 -->
+	 <delete id="delLabel" parameterType="int">
+	 	DELETE FROM label WHERE pId = #{pId}
+	 </delete>
+	 <!-- 添加新的快捷标签 -->
+	 <insert id="insertLabel" parameterType="map">
+	 	INSERT INTO `label`(pId,powerId)VALUE(#{pId},#{powerId})
+	 </insert>
+ </mapper>

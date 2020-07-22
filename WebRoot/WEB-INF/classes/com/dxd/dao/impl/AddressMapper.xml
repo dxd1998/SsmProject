@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+ "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+ <mapper namespace="com.dxd.dao.AddressMapper">
+ 	<!-- 查询指定员工的所有地址 -->
+ 	<select id="getPersonAllAddress" parameterType="int" resultMap="addressMap">
+ 		SELECT * FROM address AS a
+		LEFT JOIN person_address AS pa ON pa.addressId = a.addressId 
+		WHERE pa.pId = #{pId}
+ 	</select>
+ 	<!-- 查询所有已存地址 -->
+ 	<select id="getAddress" resultMap="addressMap">
+ 		SELECT * FROM address AS a
+		LEFT JOIN person_address AS pa ON pa.addressId = a.addressId 
+		GROUP BY addressName
+ 	</select>
+ 	<!-- 添加新地址并返回id -->
+ 	<insert id="addNewAddress" parameterType="Address">
+ 		INSERT INTO `address`(addressName,createDate)VALUE(#{addressName},#{createDate})
+ 		<selectKey keyProperty="addressId" order="AFTER" resultType="int">
+ 			select last_insert_id()
+ 		</selectKey>
+ 	</insert>
+ 	<!-- 删除指定员工指定地址 -->
+ 	<delete id="delPerson_address">
+ 		delete from person_address where pId=#{pId} and addressId=#{addressId}
+ 	</delete>
+ 	<!-- 判断员工有多少个地址 -->
+ 	<select id="checkPerson_addressNum" parameterType="int" resultType="int">
+ 		select count(*) from person_address where pId=#{pId}
+ 	</select>
+ 	<!-- 得到指定员工的所有地址 -->
+ 	<select id="getPerson_address" parameterType="int" resultMap="addressMap">
+ 		SELECT * FROM address AS a
+		LEFT JOIN person_address AS pa ON pa.addressId = a.addressId
+		WHERE pId=#{pId}
+ 	</select>
+ 	<resultMap type="Address" id="addressMap">
+ 		<id column="addressId" property="addressId"/>
+ 		<result column="addressName" property="addressName"/>
+ 		<result column="createDate" property="createDate"/>
+ 	</resultMap>
+ </mapper>

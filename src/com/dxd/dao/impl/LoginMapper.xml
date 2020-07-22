@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+ "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+ <mapper namespace="com.dxd.dao.LoginMapper">
+ 	<!-- 验证登录 -->
+ 	<select id="checkLogin" parameterType="String" resultMap="PersonMap">
+ 		SELECT p.*,d.dId,d.dDate,d.dName,r.rId,r.rName,r.rCode,r.rDate,po.* 
+ 		FROM person AS p
+		LEFT JOIN person_department AS pd ON p.pId = pd.pId
+		LEFT JOIN department AS d ON d.dId = pd.dId
+		LEFT JOIN person_role AS pr ON p.pId = pr.pId
+		LEFT JOIN role AS r ON r.rId = pr.rId
+		left join person_power as pp on p.pId = pp.pId
+		left join power as po on po.powerId = pp.powerId
+		WHERE pLoginName = #{pLoginName} 
+ 	</select>
+ 	<resultMap type="Person" id="PersonMap">
+ 		<id column="Pid" property="pId"/>
+ 		<result column="pName" property="pName"/>
+ 		<result column="pLoginName" property="pLoginName"/>
+ 		<result column="pPassword" property="pPassword"/>
+ 		<result column="pAge" property="pAge"/>
+ 		<result column="pSex" property="pSex"/>
+ 		<result column="pDate" property="pDate"/>
+ 		<association property="department" javaType="Department">
+ 			<id column="dId" property="dId"/>
+ 			<result column="dName" property="dName"/>
+ 			<result column="dDate" property="dDate"/>
+ 		</association>
+ 		<association property="role" javaType="Role">
+ 			<id column="rId" property="rId"/>
+ 			<result column="rName" property="rName"/>
+ 			<result column="rCode" property="rCode"/>
+ 			<result column="rDate" property="rDate"/>
+ 		</association>
+ 		<collection property="address" ofType="Address" javaType="ArrayList">
+ 			<id column="addressId" property="addressId"/>
+ 			<result column="addressName" property="addressName"/>
+ 			<result column="createDate" property="createDate"/>
+ 		</collection>
+ 		<collection property="powerList" javaType="ArrayList" ofType="Power">
+ 			<id column="powerId" property="powerId"/>
+ 			<result column="powerName" property="powerName"/>
+ 			<result column="parentId" property="parentId"/>
+ 			<result column="type" property="type"/>
+ 			<result column="powerDesc" property="powerDesc"/>
+ 		</collection>
+ 	</resultMap>
+ </mapper>

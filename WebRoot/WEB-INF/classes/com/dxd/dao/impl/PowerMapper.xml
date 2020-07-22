@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+ "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+ <mapper namespace="com.dxd.dao.PowerMapper">
+ 	<!-- 查询该员工的二级权限 -->
+ 	<select id="getPowerByChild" parameterType="map" resultType="Power2">
+ 		SELECT p.* FROM `power` AS p
+		LEFT JOIN person_power AS pp ON p.powerId = pp.powerId
+		LEFT JOIN person AS ps ON ps.pId = pp.pId
+		WHERE ps.pId = #{pId} AND p.parentId = #{parentId}
+ 	</select>
+ 	<!-- 获得所有1级节点 -->
+ 	<select id="getPowerByZero" resultMap="powerMap">
+ 		SELECT p.* FROM `power` AS p
+		LEFT JOIN person_power AS pp ON p.powerId = pp.powerId
+		LEFT JOIN person AS ps ON ps.pId = pp.pId
+		WHERE p.type in (0,999)
+ 	</select>
+ 	<!-- 获得所有2级节点 -->
+ 	<select id="getPowerByOne" resultMap="powerMap">
+ 		SELECT * FROM `power`
+		WHERE type=1
+ 	</select>
+ 	<!-- 查询该员工所有权限 -->
+ 	<select id="getPowerByPerson" resultMap="powerMap">
+ 		SELECT p.* FROM `power` AS p
+		LEFT JOIN person_power AS pp ON p.powerId = pp.powerId
+		LEFT JOIN person AS ps ON ps.pId = pp.pId
+		WHERE ps.pId = #{pId}
+ 	</select>
+ 	<!-- 查询该员工所有三级权限 -->
+ 	<select id="getLevel3Power" parameterType="int" resultType="Power2">
+ 		SELECT p.* FROM `power` AS p
+		LEFT JOIN person_power AS pp ON p.powerId = pp.powerId
+		LEFT JOIN person AS ps ON ps.pId = pp.pId
+		WHERE ps.pId = #{pId} AND `type` = 2
+ 	</select>
+ 	<!-- 删除员工所有权限 -->
+ 	<delete id="delPersonAllPower" parameterType="int">
+ 		DELETE FROM person_power WHERE pId = #{pId}
+ 	</delete>
+ 	<!-- 分配指定员工权限 -->
+ 	<insert id="givePower">
+ 		INSERT INTO person_power(pId,powerId)VALUE(#{pId},#{powerId})
+ 	</insert>
+ 	<!-- 获得所有3级权限 -->
+ 	<select id="getAllLevel3Power" resultMap="powerMap">
+ 		SELECT * FROM `power` WHERE `type` = 2
+ 	</select>
+ 	<resultMap type="Power" id="powerMap">
+ 		<id column="powerId" property="powerId"/>
+		<result column="powerName" property="powerName"/>
+		<result column="parentId" property="parentId"/>
+		<result column="type" property="type"/>
+		<result column="powerDesc" property="powerDesc"/>
+ 	</resultMap>
+ </mapper>

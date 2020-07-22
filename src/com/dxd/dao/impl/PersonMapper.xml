@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+ "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+ <mapper namespace="com.dxd.dao.PersonMapper">
+ 	<!-- 查询所有员工,条件查询,分页 -->
+ 	<select id="getPerson" parameterType="map" resultMap="PersonMap">
+ 		<bind name="pageValue" value="(currentPage-1)*rowPerPage"/>
+		SELECT p.*,d.dId,d.dDate,d.dName,r.rId,r.rName,r.rCode,r.rDate
+		FROM person AS p
+		LEFT JOIN person_department AS pd ON p.pId = pd.pId
+		LEFT JOIN department AS d ON d.dId = pd.dId
+		LEFT JOIN person_role AS pr ON p.pId = pr.pId
+		LEFT JOIN role AS r ON r.rId = pr.rId
+		WHERE 1=1
+		<if test="pName != '' and pName != null">
+			and p.pName like concat('%',#{pName},'%')
+		</if>	
+		<if test="dId != '' and dId != null">
+			and d.dId = #{dId}
+		</if>
+		GROUP BY p.pId 
+		ORDER BY r.rId ASC
+		<if test="currentPage != '' and currentPage != null">
+			limit #{pageValue},#{rowPerPage}
+		</if>
+ 	</select>
+ 	<!-- 根据不同条件动态查询所有员工信息数 -->
+ 	<select id="getPersonCount" parameterType="map" resultMap="PersonMap" >
+ 		SELECT p.*,d.dId,d.dDate,d.dName,r.rId,r.rName,r.rCode
+		 FROM person AS p
+		LEFT JOIN person_department AS pd ON p.pId = pd.pId
+		LEFT JOIN department AS d ON d.dId = pd.dId
+		LEFT JOIN person_role AS pr ON p.pId = pr.pId
+		LEFT JOIN role AS r ON r.rId = pr.rId
+		where 1=1
+ 		<if test="pName != '' and pName != null">
+ 			and pName like concat('%',#{pName},'%')
+ 		</if>
+ 		<if test="dId != '' and dId != null">
+ 			and d.dId = #{dId}
+ 		</if>
+ 		GROUP BY p.pId
+ 	</select>
+ 	<!-- 删除指定员工 -->
+ 	<delete id="delPerson" parameterType="int">
+ 		DELETE FROM person WHERE pId =#{pId}
+ 	</delete>
+ 	<!-- 删除指定员工地址 -->
+ 	<delete id="delPerson_Address" parameterType="int">
+ 		DELETE FROM `person_address` WHERE pId = #{pId}
+ 	</delete>
+ 	<!-- 删除指定员工角色信息 -->
+ 	<delete id="delPerson_role"  parameterType="int">
+ 		DELETE FROM `person_role` WHERE pId = #{pId}
+ 	</delete>
+ 	<!-- 删除指定员工部门信息 -->
+ 	<delete id="delPerson_Department" parameterType="int">
+ 		DELETE FROM `person_department` WHERE pId = #{pId}
+ 	</delete>
+ 	<!-- 删除指定员工请假记录 -->
+ 	<delete id="delPerson_leave" parameterType="int">
+ 		DELETE FROM `leavemessage` WHERE leavePerson = #{pId}
+ 	</delete>
+ 	<!-- 删除指定员工考勤记录 -->
+ 	<delete id="delPerson_check" parameterType="int">
+ 		DELETE FROM `person_checkperson` WHERE checkPerson=#{pId}
+ 	</delete>
+ 	<!-- 修改员工 -->
+ 	<update id="updatePerson" parameterType="Person">
+ 		update person set pName=#{pName},pAge=#{pAge},pSex=#{pSex} where pId=#{pId}
+ 	</update>
+ 	<!-- 修改员工角色 -->
+ 	<update id="updatePerson_Role">
+ 		UPDATE `person_role` SET rId=#{rId} WHERE pId=#{pId}
+ 	</update>
+ 	<!-- 修改员工部门 -->
+ 	<update id="updatePerson_Department">
+ 		UPDATE `person_department` SET dId=#{dId} WHERE pId=#{pId}
+ 	</update>
+ 	<!-- 绑定指定员工的地址 -->
+ 	<insert id="addPerson_Address">
+ 		INSERT INTO `person_address`(pId,addressId)VALUE(#{pId},#{aId})
+ 	</insert>
+ 	<!-- 判断员工用户名是否存在 -->
+ 	<select id="checkLoginName" parameterType="String" resultType="int">
+ 		select count(*) from person where pLoginName = #{pLoginName}
+ 	</select>
+ 	<!-- 添加员工 -->
+ 	<insert id="addPerson" parameterType="Person">
+ 		INSERT INTO `person`(`pName`,`pLoginName`,`pPassword`,`pAge`,`pSex`,`pDate`)
+ 		VALUE(#{pName},#{pLoginName},#{pPassword},#{pAge},#{pSex},#{pDate})
+ 		<!-- 返回主键 -->
+ 		<selectKey keyProperty="pId" order="AFTER" resultType="int">
+ 			select last_insert_id()
+ 		</selectKey>
+ 	</insert>
+ 	<!-- 添加员工角色 -->
+ 	<insert id="addPerson_role">
+ 		INSERT INTO `person_role`(pId,rId)VALUE(#{pId},#{rId})
+ 	</insert>
+ 	<!-- 添加员工部门 -->
+ 	<insert id="addPerson_department">
+ 		INSERT INTO `person_department`(dId,pId)VALUE(#{dId},#{pId})
+ 	</insert>
+ 	<!-- 查询部门经理负责的部门id -->
+ 	<select id="getDepartmentManager" parameterType="int" resultType="int">
+ 		SELECT dId FROM department WHERE dPerson = #{pId}
+ 	</select>
+ 	<!-- 获得指定部门下的所有员工 -->
+ 	<select id="getDepartmentPersonByDid" parameterType="map" resultMap="PersonMap">
+ 		<bind name="pageValue" value="(currentPage-1)*rowPerPage"/>
+ 		SELECT p.*,d.*,r.* FROM person AS p
+		LEFT JOIN person_department AS pd ON p.pId = pd.pId
+		LEFT JOIN department AS d ON d.dId = pd.dId
+		left join person_role as pr on p.pId = pr.pId
+		left join role as r on r.rId = pr.rId
+		WHERE 1=1
+		<if test="pName != '' and pName != null">
+			and pName like concat('%',#{pName},'%')
+		</if>
+		and pd.dId = #{dId}
+		order by r.rId asc
+		limit #{pageValue},#{rowPerPage}
+ 	</select>
+ 	<!-- 获得指定部门下的员工数量 -->
+ 	<select id="getDepartmentPersonByDidCount" parameterType="int" resultType="int">
+ 		SELECT count(*) FROM person AS p
+		LEFT JOIN person_department AS pd ON p.pId = pd.pId
+		LEFT JOIN department AS d ON d.dId = pd.dId
+		WHERE pd.dId = #{dId}
+ 	</select>
+ 	<resultMap type="Person" id="PersonMap">
+ 		<id column="Pid" property="pId"/>
+ 		<result column="pName" property="pName"/>
+ 		<result column="pLoginName" property="pLoginName"/>
+ 		<result column="pPassword" property="pPassword"/>
+ 		<result column="pAge" property="pAge"/>
+ 		<result column="pSex" property="pSex"/>
+ 		<result column="pDate" property="pDate"/>
+ 		<association property="department" javaType="Department">
+ 			<id column="dId" property="dId"/>
+ 			<result column="dName" property="dName"/>
+ 			<result column="dDate" property="dDate"/>
+ 		</association>
+ 		<association property="role" javaType="Role">
+ 			<id column="rId" property="rId"/>
+ 			<result column="rName" property="rName"/>
+ 			<result column="rCode" property="rCode"/>
+ 			<result column="rDate" property="rDate"/>
+ 		</association>
+ 		<!-- <collection property="powerList" javaType="ArrayList" ofType="Power">
+ 			<id column="powerId" property="powerId"/>
+ 			<result column="powerName" property="powerName"/>
+ 			<result column="parentId" property="parentId"/>
+ 			<result column="type" property="type"/>
+ 		</collection> -->
+ 	</resultMap>
+ </mapper>

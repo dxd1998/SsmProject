@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+ "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+ <mapper namespace="com.dxd.dao.DepartmentMapper">
+ 	<!-- 查询所有部门信息 -->
+ 	<select id="getDepartment" resultMap="DepartmentMap">
+ 		SELECT * FROM department AS d
+		LEFT JOIN person AS p ON d.dPerson = p.pId
+ 	</select>
+ 	<!-- 修改部门负责人 -->
+ 	<update id="updatePerson_department" parameterType="int">
+ 		UPDATE `department` SET dPerson=#{newpId} where dPerson = #{oldpId}
+ 	</update>
+ 	<!-- 查询部门,条件查询,分页 -->
+ 	<select id="getDepartmentDesc" parameterType="map" resultMap="DepartmentMap">
+ 		<bind name="pageValue" value="(currentPage-1)*rowPerPage"/>
+ 		SELECT * FROM department AS d
+		LEFT JOIN person AS p ON d.dPerson = p.pId
+		WHERE 1=1
+		<if test="pName != '' and pName != null">
+			and pName like concat('%',#{pName},'%')
+		</if>
+		<if test="dId != '' and dId != null">
+			and dId = #{dId}
+		</if>
+		ORDER BY d.dDate DESC
+		limit #{pageValue},#{rowPerPage}
+ 	</select>
+ 	<!-- 根据条件,查询部门数量 -->
+ 	<select id="getDepartmentDescCount" parameterType="map" resultType="int">
+ 		SELECT count(*) FROM department AS d
+		LEFT JOIN person AS p ON d.dPerson = p.pId
+		WHERE 1=1
+		<if test="pName != '' and pName != null">
+			and pName like concat('%',#{pName},'%')
+		</if>
+		<if test="dId != '' and dId != null">
+			and dId = #{dId}
+		</if>
+ 	</select>
+ 	<!-- 判断该部门下是否存在员工 -->
+ 	<select id="checkDepartmentOfPerson" resultType="int" parameterType="int">
+ 		SELECT COUNT(*) FROM person_department WHERE dId=#{dId}
+ 	</select>
+ 	<!-- 删除指定部门 -->
+ 	<delete id="delDepartment" parameterType="int">
+ 		DELETE FROM department WHERE dId=#{dId}
+ 	</delete>
+ 	<!-- 修改指定部门 -->
+ 	<update id="updateDepartment" parameterType="map">
+ 		UPDATE `department` SET dName=#{dName},dPerson=#{pId} WHERE dId=#{dId}
+ 	</update>
+ 	<!-- 新增部门 -->
+ 	<insert id="addDepartment" parameterType="map">
+ 		INSERT INTO `department`(`dName`,`dPerson`,`dDate`)
+ 		VALUE(#{dName},#{pId},#{dDate})
+ 	</insert>
+ 	<resultMap type="Department" id="DepartmentMap">
+ 		<id column="dId" property="dId"/>
+ 		<result column="dName" property="dName"/>
+ 		<result column="dDate" property="dDate"/>
+ 		<association property="person" javaType="Person">
+ 			<id column="Pid" property="pId"/>
+	 		<result column="pName" property="pName"/>
+	 		<result column="pLoginName" property="pLoginName"/>
+	 		<result column="pPassword" property="pPassword"/>
+	 		<result column="pAge" property="pAge"/>
+	 		<result column="pSex" property="pSex"/>
+	 		<result column="pDate" property="pDate"/>
+ 		</association>
+ 	</resultMap>
+ </mapper>

@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+ "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+ <mapper namespace="com.dxd.dao.LeaveMapper">
+ 	<!-- 查询所有请假记录,条件查询,分页 -->
+ 	<select id="getLeave" parameterType="map" resultMap="leaveMap">
+ 		<bind name="pagerValue" value="(currentPage-1)*rowPerPage"/>
+ 		SELECT lm.*,p.pId,p.pName,l.lId,l.lName,t.tId,t.tName
+		FROM leavemessage AS lm
+		LEFT JOIN person AS p ON lm.leavePerson=p.pId
+		LEFT JOIN `leave` AS l ON lm.leaveType = l.lId
+		LEFT JOIN `type` AS t ON lm.type = t.tId
+		WHERE 1=1
+		<if test="pName != '' and pName != null">
+			and p.pName like concat('%',#{pName},'%')
+		</if>
+		<if test="tId != '' and tId != null">
+			and t.tId = #{tId}
+		</if>
+		ORDER BY lm.leaveStart DESC
+		LIMIT #{pagerValue},#{rowPerPage}
+ 	</select>
+ 	<!-- 根据条件查询请假记录条数 -->
+ 	<select id="getLeaveCount" parameterType="map" resultType="int">
+ 		SELECT COUNT(*)
+		FROM leavemessage AS lm
+		LEFT JOIN person AS p ON lm.leavePerson=p.pId
+		LEFT JOIN `type` AS t ON lm.type = t.tId
+		where 1=1
+		<if test="pName != '' and pName != null">
+			and pName like concat('%',#{pName},'%')
+		</if>
+		<if test="tId != '' and tId != null">
+			and t.tId = #{tId}
+		</if>
+ 	</select>
+ 	<!-- 获得所有处理类型 -->
+ 	<select id="getType" resultType="Type">
+ 		select * from type
+ 	</select>
+ 	<!-- 删除指定请假记录 -->
+ 	<delete id="delLeave" parameterType="int">
+ 		DELETE FROM `leavemessage` WHERE leaveId = #{leaveId}
+ 	</delete>
+ 	<!-- 修改审核状态 -->
+ 	<update id="updateLeaveType" parameterType="map">
+ 		UPDATE `leavemessage` SET `type`=#{tId} WHERE leaveId = #{leaveId}
+ 	</update>
+ 	<!-- 获得所有请假类型 -->
+ 	<select id="getLeaveType" resultType="Leave">
+ 		SELECT * FROM `leave`
+ 	</select>
+ 	<!-- 新增请假记录 -->
+ 	<insert id="addLeave" parameterType="map">
+ 		INSERT INTO `leavemessage`(`leaveStart`,`leaveEnd`,`leavePerson`,`leaveType`,`type`)
+		VALUE(#{leaveStart},#{leaveEnd},#{pId},#{leaveType},1)
+ 	</insert>
+ 	<resultMap type="LeaveMessage" id="leaveMap">
+ 		<id column="leaveId" property="leaveId"/>
+ 		<result column="leaveStart" property="leaveStart"/>
+ 		<result column="leaveEnd" property="leaveEnd"/>
+ 		<association property="person" javaType="Person">
+ 			<id column="pId" property="pId"/>
+ 			<result column="pName" property="pName"/>
+ 		</association>
+ 		<association property="leave" javaType="Leave">
+ 			<id column="lId" property="lId"/>
+ 			<result column="lName" property="lName"/>
+ 		</association>
+ 		<association property="type" javaType="Type">
+ 			<id column="tId" property="tId"/>
+ 			<result column="tName" property="tName"/>
+ 		</association>
+ 	</resultMap>
+ </mapper>
